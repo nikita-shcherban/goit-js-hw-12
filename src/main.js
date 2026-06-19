@@ -6,9 +6,9 @@ import {
   hideLoader,
   showLoader,
   showLoadMoreButton,
+  hideLoadMoreButton,
 } from './js/render-functions';
 import { getImagesByQuery } from './js/pixabay-api';
-import { hideLoadMoreButton } from './js/render-functions';
 
 const formSearch = document.querySelector('.form');
 const loadMoreBtn = document.querySelector('.load-more-btn');
@@ -45,11 +45,21 @@ async function handleSubmit(event) {
       return;
     }
     createGallery(dataSearch.hits);
-    if (dataSearch.totalHits > perPage) {
+    if (dataSearch.totalHits <= perPage) {
+      hideLoadMoreButton();
+      iziToast.error({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
+    } else {
       showLoadMoreButton();
     }
   } catch (error) {
     console.error(error);
+    iziToast.error({
+      message: 'Something went wrong!',
+      position: 'topRight',
+    });
   } finally {
     hideLoader();
     formSearch.reset();
@@ -61,6 +71,7 @@ loadMoreBtn.addEventListener('click', loadMorePages);
 async function loadMorePages() {
   page += 1;
 
+  hideLoadMoreButton();
   showLoader();
 
   try {
@@ -81,7 +92,6 @@ async function loadMorePages() {
 
     const totalPages = Math.ceil(dataSearch.totalHits / perPage);
     if (page >= totalPages) {
-      hideLoadMoreButton();
       iziToast.error({
         message: "We're sorry, but you've reached the end of search results.",
         position: 'topRight',
@@ -91,6 +101,11 @@ async function loadMorePages() {
     }
   } catch (error) {
     console.error(error);
+    iziToast.error({
+      message: 'Something went wrong!',
+      position: 'topRight',
+    });
+    showLoadMoreButton();
   } finally {
     hideLoader();
   }
